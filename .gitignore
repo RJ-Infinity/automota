@@ -1,0 +1,6 @@
+olive.c
+build/*
+d2sm.js
+d2sm.ts
+wasm-sourcemap.py
+.vscode
