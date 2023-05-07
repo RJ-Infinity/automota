@@ -45,7 +45,7 @@ uint32_t cellColours[MaxCellType]= {
 
 RJList_CellArea Cells = {0};
 
-Vec2D location={0};
+Vec2D OffsetLocation={0};
 
 #define BACKGROUND_COLOR 0xFF181818
 
@@ -54,31 +54,21 @@ Olivec_Canvas oc;
 int Width;
 int Height;
 
-bool isMouseDown = false;
+int mouseState = -1;
 int cellPlacingType;
 
-Vec2D HoveringLocation = {0};
+Vec2D MouseLastLoc = {0};
 
 void draw(void)
 {
 	olivec_fill(oc, BACKGROUND_COLOR);
 
-	// olivec_text(
-	// 	oc,
-	// 	itoa(HoveringLocation.X),
-	// 	8,
-	// 	8,
-	// 	olivec_default_font,
-	// 	8,
-	// 	0xff0ff0ff
-	// );
-
 	for (size_t i = 0; i < Cells.Length; i++){
 		// if (Cells.Buffer[i].Location.X == -1 && Cells.Buffer[i].Location.Y == -1){continue;}
 		olivec_frame(
 			oc,
-			Cells.Buffer[i].Location.X*320,
-			Cells.Buffer[i].Location.Y*320,
+			Cells.Buffer[i].Location.X*320+OffsetLocation.X,
+			Cells.Buffer[i].Location.Y*320+OffsetLocation.Y,
 			320,320,2,0xff0000ff
 		);
 		pushToBuffer("(");
@@ -91,8 +81,8 @@ void draw(void)
 		olivec_text(
 			oc,
 			buffer,
-			Cells.Buffer[i].Location.X*320,
-			Cells.Buffer[i].Location.Y*320,
+			Cells.Buffer[i].Location.X*320+OffsetLocation.X,
+			Cells.Buffer[i].Location.Y*320+OffsetLocation.Y,
 			olivec_default_font,
 			8,
 			0xff0ff0ff
@@ -111,8 +101,8 @@ void draw(void)
 			if (Cells.Buffer[i].Area[j] == 0){continue;} // if its dead dont draw anything
 			olivec_rect(
 				oc,
-				Cells.Buffer[i].Location.X*320 + j % CELL_AREA_WIDTH * 10,
-				Cells.Buffer[i].Location.Y*320 + j / CELL_AREA_WIDTH * 10,
+				(Cells.Buffer[i].Location.X*320 + j % CELL_AREA_WIDTH * 10)+OffsetLocation.X,
+				(Cells.Buffer[i].Location.Y*320 + j / CELL_AREA_WIDTH * 10)+OffsetLocation.Y,
 				10,
 				10,
 				cellColours[Cells.Buffer[i].Area[j]-1]
@@ -296,8 +286,8 @@ void nextItteration(void){
 bool moved = false;
 void mouseDown(MouseEvent* e){
 	Vec2D cellLoc = {
-		.X = e->loc.X / 10,
-		.Y = e->loc.Y / 10,
+		.X = (e->loc.X-OffsetLocation.X) / 10,
+		.Y = (e->loc.Y-OffsetLocation.Y) / 10,
 	};
 	if (e->button == 0){
 		cellPlacingType = toggleCell(&Cells, cellLoc);
@@ -308,32 +298,46 @@ void mouseDown(MouseEvent* e){
 		if (CellAreaI == (size_t)-1){cellPlacingType = 0;}
 		else{cellPlacingType = Cells.Buffer[CellAreaI].Area[GetAreaIndex(cellLoc)];}
 	}
-	isMouseDown = true;
+	mouseState = e->button;
 	moved = false;
 	draw();
+	MouseLastLoc = (Vec2D){
+		.X = e->loc.X,
+		.Y = e->loc.Y,
+	};
 }
 void mouseUp(MouseEvent* e){
 	(void)e;
-	isMouseDown = false;
+	mouseState = -1;
 }
 void mouseMove(MouseEvent* e){
 	moved = true;
-	HoveringLocation = (Vec2D){
-		.X = e->loc.X / 10,
-		.Y = e->loc.Y / 10,
-	};
-	if (isMouseDown){
+	consoleLogi(e->button);
+	if (mouseState == 0 || mouseState == 2){
 		addCell(&Cells, (Vec2D){
-			.X = e->loc.X / 10,
-			.Y = e->loc.Y / 10,
+			.X = (e->loc.X-OffsetLocation.X) / 10,
+			.Y = (e->loc.Y-OffsetLocation.Y) / 10,
 		}, cellPlacingType);
 		draw();
 	}
-	draw();
+	if (mouseState == 1){
+		OffsetLocation.X-=MouseLastLoc.X-e->loc.X;
+		OffsetLocation.Y-=MouseLastLoc.Y-e->loc.Y;
+		draw();
+	}
+	MouseLastLoc = (Vec2D){
+		.X = e->loc.X,
+		.Y = e->loc.Y,
+	};
 }
 void keyDown(KeyboardEvent* e){
 	if (strcmp(e->key, "Space")==0){
 		nextItteration();
+		draw();
+	}
+	if (strcmp(e->key, "Enter")==0 && Cells.Length > 0){
+		OffsetLocation.X = -Cells.Buffer[0].Location.X * CELL_AREA_WIDTH * 10;
+		OffsetLocation.Y = -Cells.Buffer[0].Location.Y * CELL_AREA_WIDTH * 10;
 		draw();
 	}
 }
