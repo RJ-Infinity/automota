@@ -7,6 +7,7 @@ set EXPORTS="-Wl,--export=draw"^
  "-Wl,--export=mouseUp"^
  "-Wl,--export=mouseMove"^
  "-Wl,--export=keyDown"^
- "-Wl,--export=contextMenu"
+ "-Wl,--export=contextMenu" ^
+ "-Wl,--export=main"
 
 clang %CFLAGS% %EXPORTS% "-Wl,--allow-undefined" -g -o.\build\automota.wasm -DVC_PLATFORM=VC_WASM_PLATFORM main.c

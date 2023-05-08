@@ -48,7 +48,7 @@ function GetStringPtr(str){
 	).set(bytes);
 	return strPtr;
 }
-function GetString(ptr){
+function GetStrLen(ptr){
 	var iPtr = ptr;
 	var byte;
 	var length = 0;
@@ -57,7 +57,14 @@ function GetString(ptr){
 		length++;
 		iPtr++;
 	}
-	return new TextDecoder().decode(new Uint8Array(automotaCLib.instance.exports.memory.buffer, ptr, length-1));
+	return length-1;
+}
+function GetString(ptr){
+	return new TextDecoder().decode(new Uint8Array(
+		automotaCLib.instance.exports.memory.buffer,
+		ptr,
+		GetStrLen(ptr)
+	));
 }
 
 
@@ -118,11 +125,11 @@ async function main(){
 				ctx.putImageData(image, 0, 0);
 			},
 			"consoleLog": (ptr)=>console.log(GetString(ptr)),
-			"consoleLogi": (number)=>console.log(number),
+			"consoleLogi": console.log,
 			"consoleLogb": (bool)=>console.log(bool!=0),
 			"malloc": memAllocer.alloc.bind(memAllocer),
 			"free": memAllocer.free.bind(memAllocer),
-			"itoa": (number)=>GetStringPtr(number),
+			"itoa": GetStringPtr,
 			"strcmp": function(a, b){
 				i=0;
 				while (true){
@@ -134,9 +141,11 @@ async function main(){
 					i++
 				}
 			},
+			"strlen": GetStrLen,
 			"debug": function(line){console.log(line);debugger;},
 			"pushToBuffer": function(x){debugLoggerBuffer+=GetString(x);},
 			"pushToBufferi": function(i){debugLoggerBuffer+=i;},
+			"pushToBufferb": function(bool){debugLoggerBuffer+=bool!=0;},
 			"logBuffer": function(){console.log(debugLoggerBuffer)},
 			"clearBuffer": function(){debugLoggerBuffer="";},
 			"getBuffer": ()=>GetStringPtr(debugLoggerBuffer),
@@ -153,6 +162,7 @@ async function main(){
 	memAllocer.setMemory(automotaCLib.instance.exports.memory);
 	window.automotaCLib = automotaCLib;//FIXME: this is debug only
 	window.memAllocer = memAllocer;
+	automotaCLib.instance.exports.main();
 	function render(){
 		automotaCLib.instance.exports.resize(
 			window.innerWidth,

@@ -1,8 +1,11 @@
-// #define OLIVEC_IMPLEMENTATION
+#define OLIVEC_IMPLEMENTATION
 #include "olive.c"
+#undef OLIVEC_IMPLEMENTATION
 #include "jsExtern.h"
-#include "common.h"
-#pragma pack(4)
+#include "vec2d.h"
+#include "button.c"
+// #include "font.h"
+#include "olivec_rose_font.c"
 
 
 #define CELL_AREA_WIDTH 32
@@ -59,6 +62,7 @@ int cellPlacingType;
 
 Vec2D MouseLastLoc = {0};
 
+Button autoRunBtn;
 void draw(void)
 {
 	olivec_fill(oc, BACKGROUND_COLOR);
@@ -83,8 +87,8 @@ void draw(void)
 			buffer,
 			Cells.Buffer[i].Location.X*320+OffsetLocation.X,
 			Cells.Buffer[i].Location.Y*320+OffsetLocation.Y,
-			olivec_default_font,
-			8,
+			olivec_rose_font,
+			2,
 			0xff0ff0ff
 		);
 		free(buffer);
@@ -94,7 +98,7 @@ void draw(void)
 			// 	itoa(neighbours(&Cells.Buffer[i], j)[0]),
 			// 	Cells.Buffer[i].Location.X*320,
 			// 	Cells.Buffer[i].Location.Y*320,
-			// 	olivec_default_font,
+			// 	MainFont,
 			// 	8,
 			// 	0xff0ff0ff
 			// );
@@ -109,6 +113,8 @@ void draw(void)
 			);
 		}
 	}
+
+	drawButton(&autoRunBtn, &oc);
 
 	render(oc);
 }
@@ -285,6 +291,10 @@ void nextItteration(void){
 }
 bool moved = false;
 void mouseDown(MouseEvent* e){
+	moved = false;
+	bool buttonHandled = mouseDownButton(&autoRunBtn, e);
+	if (autoRunBtn.needsRedrawing){draw();}
+	if (buttonHandled){return;}
 	Vec2D cellLoc = {
 		.X = (e->loc.X-OffsetLocation.X) / 10,
 		.Y = (e->loc.Y-OffsetLocation.Y) / 10,
@@ -299,7 +309,6 @@ void mouseDown(MouseEvent* e){
 		else{cellPlacingType = Cells.Buffer[CellAreaI].Area[GetAreaIndex(cellLoc)];}
 	}
 	mouseState = e->button;
-	moved = false;
 	draw();
 	MouseLastLoc = (Vec2D){
 		.X = e->loc.X,
@@ -307,12 +316,16 @@ void mouseDown(MouseEvent* e){
 	};
 }
 void mouseUp(MouseEvent* e){
-	(void)e;
+	bool buttonHandled = mouseUpButton(&autoRunBtn, e);
+	if (autoRunBtn.needsRedrawing){draw();}
+	if (buttonHandled){return;}
 	mouseState = -1;
 }
 void mouseMove(MouseEvent* e){
+	bool buttonHandled = mouseMoveButton(&autoRunBtn, e);
+	if (autoRunBtn.needsRedrawing){draw();}
+	if (buttonHandled){return;}
 	moved = true;
-	consoleLogi(e->button);
 	if (mouseState == 0 || mouseState == 2){
 		addCell(&Cells, (Vec2D){
 			.X = (e->loc.X-OffsetLocation.X) / 10,
@@ -343,10 +356,31 @@ void keyDown(KeyboardEvent* e){
 }
 bool contextMenu(void){return moved;}
 
+void autoRunBtnCallback(void){
+	consoleLog("Button Clicked");
+}
+
 void resize(int width, int height){
 	if (Pixels){free(Pixels);}
 	Pixels = malloc(width * height * sizeof *Pixels);
 	Width = width;
 	Height = height;
 	oc = olivec_canvas(Pixels, Width, Height, Width);
+}
+
+int main(void){
+	autoRunBtn = initButton((Button){
+		.Text = "Toggle Auto Run -",
+		.Font = olivec_rose_font,
+		.FontSize = 1,
+		.FontColour = 0xffffffff,
+		.BackColour = 0xff000000,
+		.HoverColour = 0xff252525,
+		.FocusColour = 0xff454545,
+		.BorderWidth = 2,
+		.BorderColour = 0xffc1a05b,
+		.Location = (Vec2D){.X=5,.Y=5},
+		.Padding = 5,
+		.Callback = autoRunBtnCallback,
+	});
 }

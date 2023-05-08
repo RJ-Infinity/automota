@@ -1,12 +1,12 @@
 #pragma once
-#define OLIVEC_IMPLEMENTATION
 #include "olive.c"
 
-#include "common.h"
+#include "vec2d.h"
 
 float render(Olivec_Canvas oc);
 void pushToBuffer(char* x);
 void pushToBufferi(int x);
+void pushToBufferb(bool x);
 void logBuffer(void);
 void clearBuffer(void);
 char* getBuffer(void);
@@ -18,6 +18,7 @@ void free(void* ptr);
 char* itoa(int x);
 int strcmp(char* a, char* b);
 void debug(int a);
+size_t strlen(const char *str);
 
 // although not technicly a js function it is needed for memcpy to work
 void* memcpy(void* dest, void* src, size_t count)

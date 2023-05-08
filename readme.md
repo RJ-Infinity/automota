@@ -18,3 +18,7 @@ this will spit out the wasm and then if you serve the directory you can see the 
 NOTE: if you get the error `you dont have d2sm. try turning debug mode off` this means you need to either get the dwarf2sourcemap library from https://github.com/jdmichaud/dwarf-2-sourcemap and compile the typescript file or you can turn of debug mode by changing the line 
 `DEBUG = true;`
 at the top of `script.js` to `DEBUG = false;`
+
+it currently supports game of life, seeds, briansBrain and WireWorld however you need to change the function call in nextItteration in `main.c`.
+
+![glider Gun](gliderGun.png)
