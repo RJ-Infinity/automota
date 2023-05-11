@@ -83,4 +83,10 @@ class memAlloc{
 		memAlloc.DEBUG && console.log("creating new free memory entry for memory of size "+size+"b at "+mem)
 		this.freeMem[mem]=size;
 	};
+	getExports(){
+		return {
+			"malloc": this.alloc.bind(this),
+			"free": this.free.bind(this),
+		}
+	};
 }

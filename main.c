@@ -63,18 +63,20 @@ int cellPlacingType;
 Vec2D MouseLastLoc = {0};
 
 Button autoRunBtn;
+bool autoRun = false;
+
 void draw(void)
 {
 	olivec_fill(oc, BACKGROUND_COLOR);
 
 	for (size_t i = 0; i < Cells.Length; i++){
 		// if (Cells.Buffer[i].Location.X == -1 && Cells.Buffer[i].Location.Y == -1){continue;}
-		olivec_frame(
-			oc,
-			Cells.Buffer[i].Location.X*320+OffsetLocation.X,
-			Cells.Buffer[i].Location.Y*320+OffsetLocation.Y,
-			320,320,2,0xff0000ff
-		);
+		// olivec_frame(
+		// 	oc,
+		// 	Cells.Buffer[i].Location.X*320+OffsetLocation.X,
+		// 	Cells.Buffer[i].Location.Y*320+OffsetLocation.Y,
+		// 	320,320,2,0xff0000ff
+		// );
 		pushToBuffer("(");
 		pushToBufferi(Cells.Buffer[i].Location.X);
 		pushToBuffer(", ");
@@ -245,11 +247,11 @@ void nextItteration(void){
 	newCells.Length = 0;
 
 	RJList_Vec2D done = {0};
-
+	size_t cellCount = 0;
 	for (size_t iCellArea = 0; iCellArea < Cells.Length; iCellArea++)
 	{for (size_t iCellIndex=0; iCellIndex < CELL_AREA_WIDTH*CELL_AREA_WIDTH; iCellIndex++)
 	{if (Cells.Buffer[iCellArea].Area[iCellIndex] != 0)
-	{for (int offsetY = -1; offsetY < 2; offsetY++)
+	{cellCount++;for (int offsetY = -1; offsetY < 2; offsetY++)
 	{for (int offsetX = -1; offsetX < 2; offsetX++){
 		Vec2D loc = getAbsolute(Cells.Buffer[iCellArea].Location,iCellIndex);
 		loc.X+=offsetX;
@@ -277,7 +279,7 @@ void nextItteration(void){
 
 		size_t* nbrs = neighbours(cellArea, GetAreaIndex(loc));
 
-		int nextState = gol(cellArea->Area[GetAreaIndex(loc)], nbrs);
+		int nextState = seeds (cellArea->Area[GetAreaIndex(loc)], nbrs);
 
 
 		// no need to set dead cells as they all start dead
@@ -286,6 +288,11 @@ void nextItteration(void){
 		free(nbrs);
 		RJListAppend_Vec2D(&done, loc);
 	}}}}}
+	RJListDelete_Vec2D(&done);
+	pushToBuffer("number of alive cells is ");
+	pushToBufferi(cellCount);
+	logBuffer();
+	clearBuffer();
 	RJListDelete_CellArea(&Cells);
 	Cells = newCells;
 }
@@ -356,8 +363,18 @@ void keyDown(KeyboardEvent* e){
 }
 bool contextMenu(void){return moved;}
 
+void autoNextIttr(void){
+	nextItteration();
+	draw();
+	if (autoRun){runAfterTime(autoNextIttr, 50);}
+}
 void autoRunBtnCallback(void){
-	consoleLog("Button Clicked");
+	autoRun = !autoRun;
+	if (autoRun){
+		autoNextIttr();
+		autoRunBtn.Text = "Toggle Auto Run #";
+	}else{autoRunBtn.Text = "Toggle Auto Run -";}
+	draw();
 }
 
 void resize(int width, int height){

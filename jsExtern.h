@@ -19,6 +19,8 @@ char* itoa(int x);
 int strcmp(char* a, char* b);
 void debug(int a);
 size_t strlen(const char *str);
+void runAfterTime(void(*callback)(void), int timeMS);
+int getUnixTimeStamp(void);
 
 // although not technicly a js function it is needed for memcpy to work
 void* memcpy(void* dest, void* src, size_t count)

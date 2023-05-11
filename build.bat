@@ -1,6 +1,7 @@
 set CFLAGS=-Wall -Wextra -pedantic -std=c99 -I. -O2 -fno-builtin --target=wasm32 -mbulk-memory --no-standard-libraries "-Wl,--no-entry"
 
 set EXPORTS="-Wl,--export=draw"^
+ "-Wl,--export-table"^
  "-Wl,--export=__heap_base"^
  "-Wl,--export=resize"^
  "-Wl,--export=mouseDown"^

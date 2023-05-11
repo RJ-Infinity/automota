@@ -149,6 +149,11 @@ async function main(){
 			"logBuffer": function(){console.log(debugLoggerBuffer)},
 			"clearBuffer": function(){debugLoggerBuffer="";},
 			"getBuffer": ()=>GetStringPtr(debugLoggerBuffer),
+			"runAfterTime": (callbackPtr, time)=>setTimeout(
+				automotaCLib.instance.exports.__indirect_function_table.get(callbackPtr),
+				time
+			),
+			"getUnixTimeStamp":()=>Number(new Date),
 		},
 		{
 			get(target, prop, receiver) {
